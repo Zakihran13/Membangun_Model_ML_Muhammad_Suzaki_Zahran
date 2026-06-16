@@ -24,29 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download preprocessing artifact from workflow_run
-        if: false
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          run_id: "0"
-          name: preprocessed-data
-          path: artifacts/preprocessed-data
-
-      - name: Prepare local fallback data for manual run
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          mkdir -p artifacts/preprocessed-data
-          cp "preprocessing/preprocessed data/train.csv" artifacts/preprocessed-data/train.csv
-          cp "preprocessing/preprocessed data/test.csv" artifacts/preprocessed-data/test.csv
-
-      - name: Copy preprocessed data for modelling
-        run: |
-          mkdir -p "Membangun_Model/preprocessed data"
-          cp artifacts/preprocessed-data/train.csv "Membangun_Model/preprocessed data/train.csv"
-          cp artifacts/preprocessed-data/test.csv "Membangun_Model/preprocessed data/test.csv"
-
-      - name: Verify copied datasets
+      - name: Verify datasets
         run: |
           ls -lah "Membangun_Model/preprocessed data"
           python - <<'PY'

@@ -23,19 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Prepare preprocessed data for manual run
-        run: |
-          mkdir -p artifacts/preprocessed-data
-          cp "preprocessing/preprocessed data/train.csv" artifacts/preprocessed-data/train.csv
-          cp "preprocessing/preprocessed data/test.csv" artifacts/preprocessed-data/test.csv
-
-      - name: Copy preprocessed data for tuning
-        run: |
-          mkdir -p "Membangun_Model/preprocessed data"
-          cp artifacts/preprocessed-data/train.csv "Membangun_Model/preprocessed data/train.csv"
-          cp artifacts/preprocessed-data/test.csv "Membangun_Model/preprocessed data/test.csv"
-
-      - name: Verify copied datasets
+      - name: Verify datasets
         run: |
           ls -lah "Membangun_Model/preprocessed data"
           python - <<'PY'
