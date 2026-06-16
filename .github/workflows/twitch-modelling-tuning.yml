@@ -1,0 +1,74 @@
+name: Twitch Modelling Tuning Automation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-modelling-tuning:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Prepare preprocessed data for manual run
+        run: |
+          mkdir -p artifacts/preprocessed-data
+          cp "preprocessing/preprocessed data/train.csv" artifacts/preprocessed-data/train.csv
+          cp "preprocessing/preprocessed data/test.csv" artifacts/preprocessed-data/test.csv
+
+      - name: Copy preprocessed data for tuning
+        run: |
+          mkdir -p "Membangun_Model/preprocessed data"
+          cp artifacts/preprocessed-data/train.csv "Membangun_Model/preprocessed data/train.csv"
+          cp artifacts/preprocessed-data/test.csv "Membangun_Model/preprocessed data/test.csv"
+
+      - name: Verify copied datasets
+        run: |
+          ls -lah "Membangun_Model/preprocessed data"
+          python - <<'PY'
+          import pandas as pd
+          tr = pd.read_csv('Membangun_Model/preprocessed data/train.csv')
+          te = pd.read_csv('Membangun_Model/preprocessed data/test.csv')
+          print(f'train_rows={len(tr)} test_rows={len(te)}')
+          PY
+
+      - name: Run fine-tuning and optimization
+        env:
+          DAGSHUB_OWNER: ${{ secrets.DAGSHUB_OWNER }}
+          DAGSHUB_REPO: ${{ secrets.DAGSHUB_REPO }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_EXPERIMENT_NAME_TUNING: sml-transformer-finetuning-optimization
+          MLFLOW_MODEL_NAME_TUNING: stream-title-safety-classifier-finetuned
+          HF_MODEL_NAME: distilbert-base-uncased
+          TRAIN_BATCH_SIZE: "16"
+          EVAL_BATCH_SIZE: "32"
+          NUM_EPOCHS: "3"
+          LEARNING_RATES: 2e-5,3e-5
+          WEIGHT_DECAYS: 0.0,0.01
+          WARMUP_RATIO: "0.1"
+          GRAD_CLIP_NORM: "1.0"
+          VALIDATION_SIZE: "0.15"
+          MAX_LENGTH: "96"
+          RANDOM_STATE: "42"
+        run: python "Membangun_Model/modelling_tunning.py"
+
+      - name: Upload tuning outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modelling-tuning-outputs
+          path: Membangun_Model/tuning_outputs/
+          if-no-files-found: warn

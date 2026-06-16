@@ -1,0 +1,13 @@
+datasets
+emoji
+matplotlib
+mlflow
+numpy
+pandas
+scikit-learn
+skops
+seaborn
+textblob
+torch
+transformers
+wordcloud
