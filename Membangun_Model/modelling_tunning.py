@@ -100,6 +100,8 @@ def configure_mlflow(cfg: dict) -> str:
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_registry_uri(tracking_uri)
     mlflow.set_experiment(cfg["experiment_name"])
+    # Keep manual logging active while adding automatic PyTorch logs.
+    mlflow.pytorch.autolog(log_models=False, exclusive=False, silent=True)
 
     return tracking_uri
 
@@ -244,7 +246,7 @@ def train_and_optimize(cfg: dict) -> None:
     with mlflow.start_run(run_name="bert-finetuning-optimization") as run:
         mlflow.log_param("task", "binary_text_classification")
         mlflow.log_param("bert_usage", "full_fine_tuning")
-        mlflow.log_param("autolog_used", "false")
+        mlflow.log_param("autolog_used", "true")
         mlflow.log_param("hf_model_name", cfg["hf_model_name"])
         mlflow.log_param("train_batch_size", cfg["batch_size"])
         mlflow.log_param("eval_batch_size", cfg["eval_batch_size"])
